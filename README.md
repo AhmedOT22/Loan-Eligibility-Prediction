@@ -41,8 +41,6 @@ This is a modular, production-ready Streamlit application that predicts loan app
    streamlit run app.py
    ```
 
----
-
 ## Model
 
 - **Algorithm**: Logistic Regression, Random Forest Classifier
@@ -50,7 +48,6 @@ This is a modular, production-ready Streamlit application that predicts loan app
 - **Cross-validation**: 5-fold
 - **Metric**: Accuracy Score
 
----
 
 ## Requirements
 
