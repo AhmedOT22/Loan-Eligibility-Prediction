@@ -21,13 +21,6 @@ venv/
 .pytest_cache/
 .cache/
 
-# Model and scaler files
-models/*.pkl
-
-# Data files
-data/processed/
-!data/processed/.gitkeep
-
 # Streamlit's internal file
 .streamlit/
 
