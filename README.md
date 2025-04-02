@@ -1,3 +1,5 @@
+# Streamlit URL: https://loan-eligibility-prediction-djdstcprojdapfxugpdqwi.streamlit.app/
+
 # Loan Eligibility Prediction App
 
 This is a modular, production-ready Streamlit application that predicts loan approval likelihood based on applicant data. The model uses a cleaned and preprocessed version of the UCI Loan Prediction dataset and is backed by a trained Random Forest classifier.
