@@ -1,10 +1,10 @@
-# Streamlit URL: https://loan-eligibility-prediction-djdstcprojdapfxugpdqwi.streamlit.app/
+# Streamlit URL: 
+
+https://loan-eligibility-prediction-djdstcprojdapfxugpdqwi.streamlit.app/
 
 # Loan Eligibility Prediction App
 
 This is a modular, production-ready Streamlit application that predicts loan approval likelihood based on applicant data. The model uses a cleaned and preprocessed version of the UCI Loan Prediction dataset and is backed by a trained Random Forest classifier.
-
----
 
 ## Features
 
@@ -66,7 +66,6 @@ Install them with:
 pip install -r requirements.txt
 ```
 
----
 
 ## Future Enhancements
 
@@ -74,7 +73,6 @@ pip install -r requirements.txt
 - Authentication for secure access
 - API backend for scaling
 
----
 
 ## Author
 
