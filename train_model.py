@@ -1,63 +1,61 @@
-import pandas as pd
-import os
-import joblib
 import logging
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+import json
+from config import RAW_PATH, PROCESSED_PATH
+from src.data_processing.data_loader import load_data
 from src.data_processing.preprocessing import preprocess_data
-from src.models.training import train_random_forest
+from src.data_processing.features import split_and_scale_train_test
+from src.models.training import train_random_forest, train_logistic_regression
+from src.models.evaluation import evaluate_model
+from src.models.storage import save_models
 
+# Configure logging
 logging.basicConfig(filename='loan_app.log', level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s')
 
-def load_and_preprocess_data(raw_path, processed_path):
+def train_pipeline():
     """
-    Loads the raw dataset, preprocesses it, and saves the processed data.
+    Runs the full machine learning training pipeline:
+    - Loads raw data
+    - Preprocesses the data
+    - Splits and scales features
+    - Trains both Random Forest and Logistic Regression models
+    - Evaluates models and saves their metrics to JSON files
+    - Saves trained models and the scaler to disk
     """
     try:
-        if os.path.exists(processed_path):
-            df = pd.read_csv(processed_path)
-            logging.info("Loaded processed data from %s", processed_path)
-        else:
-            df_raw = pd.read_csv(raw_path).drop(['Loan_ID'], axis=1, errors='ignore')
-            df = preprocess_data(df_raw)
-            os.makedirs(os.path.dirname(processed_path), exist_ok=True)
-            df.to_csv(processed_path, index=False)
-            logging.info("Processed raw data and saved to %s", processed_path)
-        return df
-    except Exception as e:
-        logging.error("Error loading or preprocessing data: %s", e)
-        raise
+        # Load raw dataset
+        df_raw = load_data(RAW_PATH)
 
-def train_and_save_model(df_processed, model_path, scaler_path):
-    """
-    Trains the model and scaler, saves both to disk, and returns the accuracy and feature names.
-    """
-    try:
-        X = df_processed.drop('Loan_Approved', axis=1)
-        y = df_processed['Loan_Approved']
-        scaler = MinMaxScaler()
-        X_scaled = scaler.fit_transform(X)
-        X_train, X_test, y_train, y_test = train_test_split(
-            X_scaled, y, test_size=0.2, random_state=42, stratify=y
-        )
-        model = train_random_forest(X_train, y_train)
-        accuracy = accuracy_score(y_test, model.predict(X_test))
-        joblib.dump(model, model_path)
-        joblib.dump(scaler, scaler_path)
-        logging.info("Model trained with accuracy: %.2f and saved to %s", accuracy, model_path)
-        return accuracy, X.columns.tolist()
+        # Preprocess and store the processed dataset
+        df_processed = preprocess_data(df_raw, output_path=PROCESSED_PATH)
+
+        # Split into train/test and scale the features
+        X_train, X_test, y_train, y_test, scaler, feature_order = split_and_scale_train_test(df_processed)
+
+        # Train both models
+        models = {
+            "random_forest": train_random_forest(X_train, y_train),
+            "logistic_regression": train_logistic_regression(X_train, y_train)
+        }
+
+        # Evaluate models and save metrics
+        metrics = {}
+        for name, model in models.items():
+            accuracy, _, _ = evaluate_model(model, X_test, y_test)
+            print(f"{name.replace('_', ' ').title()} model trained with accuracy: {accuracy:.2%}")
+            metrics[name] = {"accuracy": accuracy}
+            metrics_path = f"models/{name}_metrics.json"
+            with open(metrics_path, 'w') as f:
+                json.dump(metrics[name], f)
+
+        # Save both trained models and the shared scaler
+        save_models(models, scaler, base_path="models/")
+
+        print(f"Feature order: {feature_order}")
+
     except Exception as e:
-        logging.error("Error training or saving model: %s", e)
-        raise
+        logging.error("Training pipeline failed: %s", e)
+        print(f"Training pipeline failed: {e}")
 
 if __name__ == "__main__":
-    RAW_PATH = 'data/raw/credit.csv'
-    PROCESSED_PATH = 'data/processed/credit_processed.csv'
-    MODEL_PATH = 'models/loan_model.pkl'
-    SCALER_PATH = 'models/scaler.pkl'
-
-    df_processed = load_and_preprocess_data(RAW_PATH, PROCESSED_PATH)
-    accuracy, feature_order = train_and_save_model(df_processed, MODEL_PATH, SCALER_PATH)
-    print(f"Model trained with accuracy: {accuracy:.2%}")
+    train_pipeline()

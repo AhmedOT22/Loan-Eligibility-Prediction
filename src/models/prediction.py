@@ -17,29 +17,30 @@ def predict(user_input_dict, df_processed, model, scaler, feature_order):
     - float: Probability of loan approval (0-100 scale).
     """
     try:
+        # Ensure user input is in the correct format
         input_df = pd.DataFrame([user_input_dict])
 
-        # Add input to dataset for consistent one-hot encoding
+        # Preprocess the input data
         reference_df = df_processed.drop('Loan_Approved', axis=1).copy()
         combined_df = pd.concat([input_df, reference_df], axis=0, ignore_index=True)
 
-        # Preprocess
+        # Preprocess the combined data
         combined_processed = preprocess_data(combined_df)
         user_processed = combined_processed.iloc[0:1].copy()
 
-        # Ensure feature_order has no duplicates and matches user_processed
+        # Remove duplicate columns if any
         user_processed = user_processed.loc[:, ~user_processed.columns.duplicated()].copy()
         feature_order = pd.Index(feature_order).drop_duplicates().tolist()
-
-        # Align with feature order
         user_processed = user_processed.reindex(columns=feature_order, fill_value=0)
 
-        # Scale
-        user_scaled = scaler.transform(user_processed)
+        # Fill any remaining missing values
+        user_processed.fillna(0, inplace=True)
 
-        # Predict
+        # Scale the user input using the pre-fitted scaler
+        user_scaled = scaler.transform(user_processed)
         probability = model.predict_proba(user_scaled)[0][1] * 100
         return probability
 
     except Exception as e:
         raise ValueError(f"Prediction failed: {e}")
+
