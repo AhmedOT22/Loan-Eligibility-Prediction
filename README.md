@@ -7,7 +7,7 @@ Streamlit application that predicts loan approval probability based on applicant
 ![Model Accuracy](https://img.shields.io/badge/logistic%20regression-85%25-brightgreen)
 
 
-## Streamlit Demo
+## Live Demo
 
 [Launch App](https://loan-eligibility-prediction-djdstcprojdapfxugpdqwi.streamlit.app/)
 
@@ -23,6 +23,22 @@ Streamlit application that predicts loan approval probability based on applicant
 - Visualizes results using a gauge with arrow pointer and color-coded interpretation
 - Logs application behavior and handles errors gracefully
 - Supports dynamic model selection in the UI
+   
+
+## Dataset
+- Path: `data/raw/credit.csv`
+- Target Column: `Loan_Approved`
+- Features Used:
+  - Categorical: `Gender`, `Married`, `Dependents`, `Education`, `Self_Employed`, `Property_Area`
+  - Numerical: `ApplicantIncome`, `CoapplicantIncome`, `LoanAmount`, `Loan_Amount_Term`, `Credit_History`
+ 
+
+## Model Architechture
+
+- **Algorithm**: Logistic Regression, Random Forest Classifier
+- **Preprocessing**: Handling missing values, one-hot encoding, scaling
+- **Cross-validation**: 5-fold
+- **Metric**: Accuracy Score
 
 
 ## How to Run
@@ -48,43 +64,7 @@ Streamlit application that predicts loan approval probability based on applicant
    streamlit run app.py
    ```
 
-## Model
-
-- **Algorithm**: Logistic Regression, Random Forest Classifier
-- **Preprocessing**: Handling missing values, one-hot encoding, scaling
-- **Cross-validation**: 5-fold
-- **Metric**: Accuracy Score
-
-
-## Requirements
-
-- Python ≥ 3.8  
-- Streamlit  
-- Scikit-learn  
-- Pandas  
-- Plotly  
-
-
-## Dataset
-- Path: `data/raw/credit.csv`
-- Target Column: `Loan_Approved`
-- Features Used:
-  - Categorical: `Gender`, `Married`, `Dependents`, `Education`, `Self_Employed`, `Property_Area`
-  - Numerical: `ApplicantIncome`, `CoapplicantIncome`, `LoanAmount`, `Loan_Amount_Term`, `Credit_History`
-- Preprocessing:
-  - Fill missing values (mode for categorical, median for numerical)
-  - One-hot encoding for categorical variables
-  - Min-Max scaling for numerical features
-
-
-## Model Architecture
-- Models: Logistic Regression, Random Forest
-- Evaluation Metric: Accuracy
-- Cross-validation: 5-fold optional for deeper evaluation
-- Logging: Activity stored in `loan_app.log`
-- Metrics: Saved in JSON format (`logistic_regression_metrics.json`, `random_forest_metrics.json`)
-
-
+   
 ## Results
 - Logistic Regression Accuracy: **85.37%** (Best Performer)
 - Random Forest Accuracy: **79.67%**
@@ -99,13 +79,6 @@ Streamlit application that predicts loan approval probability based on applicant
 - pandas
 - numpy
 - plotly
-
-
-## Future Enhancements
-- Fine-tuning with grid/random search
-- Probability calibration for better probability interpretation
-- Exportable prediction reports (PDF/CSV)
-- Secure access & role-based dashboard
 
 
 ## Author
