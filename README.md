@@ -27,6 +27,48 @@ Streamlit application that predicts loan approval probability based on applicant
 
 ## How to Run
 
+<<<<<<< HEAD
+=======
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/AhmedOT22/loan-eligibility-app.git
+   cd loan-eligibility-app
+   ```
+
+2. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Train the model**
+   ```bash
+   python train_model.py
+   ```
+
+4. **Launch the app**
+   ```bash
+   streamlit run app.py
+   ```
+
+## Model
+
+- **Algorithm**: Logistic Regression, Random Forest Classifier
+- **Preprocessing**: Handling missing values, one-hot encoding, scaling
+- **Cross-validation**: 5-fold
+- **Metric**: Accuracy Score
+
+
+## Requirements
+
+- Python ≥ 3.8  
+- Streamlit  
+- Scikit-learn  
+- Pandas  
+- Plotly  
+
+Install them with:
+
+>>>>>>> 097c128b751141effeac185fabe4c74271439f36
 ```bash
 # Clone the repository
 git clone https://github.com/AhmedOT22/loan-eligibility-app.git
