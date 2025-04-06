@@ -27,8 +27,6 @@ Streamlit application that predicts loan approval probability based on applicant
 
 ## How to Run
 
-<<<<<<< HEAD
-=======
 1. **Clone the repository**
    ```bash
    git clone https://github.com/AhmedOT22/loan-eligibility-app.git
@@ -65,24 +63,6 @@ Streamlit application that predicts loan approval probability based on applicant
 - Scikit-learn  
 - Pandas  
 - Plotly  
-
-Install them with:
-
->>>>>>> 097c128b751141effeac185fabe4c74271439f36
-```bash
-# Clone the repository
-git clone https://github.com/AhmedOT22/loan-eligibility-app.git
-cd loan-eligibility-app
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Train the models
-python train_model.py
-
-# Launch the app
-streamlit run app.py
-```
 
 
 ## Dataset
@@ -127,7 +107,6 @@ streamlit run app.py
 - Exportable prediction reports (PDF/CSV)
 - Secure access & role-based dashboard
 
----
 
 ## Author
 Developed by [Ahmed Ouazzani](https://github.com/AhmedOT22)
