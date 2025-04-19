@@ -6,10 +6,14 @@ logging.basicConfig(filename='loan_app.log', level=logging.INFO, format='%(ascti
 
 def train_logistic_regression(X_train, y_train):
     """
-    Train Logistic Regression model.
-
+    Trains a Logistic Regression model on the provided training data.
+    
+    Args:
+        X_train: Feature matrix for training.
+        y_train: Target vector for training.
+    
     Returns:
-    model: Trained logistic regression model, or None if training fails.
+        The trained LogisticRegression model if successful, or None if training fails.
     """
     try:
         model = LogisticRegression().fit(X_train, y_train)
@@ -21,10 +25,9 @@ def train_logistic_regression(X_train, y_train):
 
 def train_random_forest(X_train, y_train, n_estimators=100, max_depth=None):
     """
-    Train Random Forest model.
-
-    Returns:
-    model: Trained random forest model, or None if training fails.
+    Trains a Random Forest classifier on the provided data.
+    
+    Attempts to fit a Random Forest model using the specified number of estimators and maximum depth. Returns the trained model if successful, or None if training fails.
     """
     try:
         model = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth)

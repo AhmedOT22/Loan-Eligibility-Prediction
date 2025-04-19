@@ -2,8 +2,16 @@ import plotly.graph_objects as go
 
 def generate_gauge_chart(probability, interpretation, color):
     """
-    Returns a customized Plotly gauge chart visualizing the loan approval probability
-    with an arrow-like pointer to highlight the current value.
+    Generates a Plotly gauge chart visualizing loan approval probability as a percentage.
+    
+    The chart displays the probability value with a percentage suffix, highlights the current value with a thick pointer, and divides the gauge into color-coded segments representing probability ranges. The chart title includes the provided interpretation and formatted probability value.
+    
+    Args:
+        probability: Numeric value (0–100) representing the loan approval probability.
+        interpretation: Text describing the meaning of the probability.
+    
+    Returns:
+        A Plotly Figure object containing the customized gauge chart.
     """
     return go.Figure(go.Indicator(
         mode="gauge+number",

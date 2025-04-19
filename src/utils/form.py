@@ -2,10 +2,10 @@ import streamlit as st
 
 def fetch_input():
     """
-    Renders a loan application form in the Streamlit UI and collects user input.
-
+    Displays a loan application form in the Streamlit interface and returns user input.
+    
     Returns:
-        dict or None: A dictionary of user inputs if submitted, else None.
+        A dictionary containing the user's responses if the form is submitted; otherwise, None.
     """
     with st.form("loan_form"):
         Gender = st.selectbox('Gender', ('Male', 'Female'))

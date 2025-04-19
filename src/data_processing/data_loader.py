@@ -5,13 +5,9 @@ logging.basicConfig(filename='loan_app.log', level=logging.INFO, format='%(ascti
 
 def load_data(filepath):
     """
-    Load dataset from a CSV file.
-
-    Parameters:
-    filepath (str): Path to the CSV file.
-
-    Returns:
-    pd.DataFrame: Loaded DataFrame, or None if an error occurs.
+    Loads a dataset from a CSV file and converts specific columns to object type.
+    
+    Attempts to read the CSV file at the given filepath into a pandas DataFrame. If successful, converts the 'Credit_History' and 'Loan_Amount_Term' columns to the object data type. Returns the DataFrame, or None if loading fails.
     """
     try:
         df = pd.read_csv(filepath)
