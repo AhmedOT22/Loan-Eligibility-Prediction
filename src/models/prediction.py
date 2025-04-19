@@ -1,10 +1,9 @@
 import pandas as pd
 from src.data_processing.preprocessing import preprocess_data
 
-
 def predict(user_input_dict, df_processed, model, scaler, feature_order):
     """
-    Generate a probability prediction using a trained model and user input.
+    Generate a probability prediction and return preprocessed input.
 
     Parameters:
     - user_input_dict (dict): Dictionary of user inputs.
@@ -15,6 +14,7 @@ def predict(user_input_dict, df_processed, model, scaler, feature_order):
 
     Returns:
     - float: Probability of loan approval (0-100 scale).
+    - pd.DataFrame: Preprocessed (but not scaled) user input ready for SHAP explanation.
     """
     try:
         # Ensure user input is in the correct format
@@ -35,12 +35,15 @@ def predict(user_input_dict, df_processed, model, scaler, feature_order):
 
         # Fill any remaining missing values
         user_processed.fillna(0, inplace=True)
+        
+        # Force numeric
+        user_processed = user_processed.apply(pd.to_numeric, errors='coerce')
 
         # Scale the user input using the pre-fitted scaler
         user_scaled = scaler.transform(user_processed)
         probability = model.predict_proba(user_scaled)[0][1] * 100
-        return probability
+
+        return probability, user_processed # Return the preprocessed input for SHAP explanation
 
     except Exception as e:
         raise ValueError(f"Prediction failed: {e}")
-

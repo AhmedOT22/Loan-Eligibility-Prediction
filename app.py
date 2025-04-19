@@ -6,10 +6,11 @@ import joblib
 import os
 import json
 
-from config import PROCESSED_PATH
+from src.config import PROCESSED_PATH
 from src.models.prediction import predict
 from src.utils.form import fetch_input
 from src.utils.gauge import generate_gauge_chart
+from src.utils.advice import generate_advice
 
 # Configure logging
 logging.basicConfig(filename='loan_app.log', level=logging.INFO,
@@ -32,8 +33,17 @@ st.set_page_config(page_title='Loan Eligibility Prediction', layout='centered')
 st.title('Loan Eligibility Prediction App')
 
 # Model selection
-model_choice = st.selectbox("Select Model", ("Logistic Regression", "Random Forest"))
-model_key = model_choice.lower().replace(" ", "_")
+model_choice = st.selectbox(
+    "Select Prediction Model",
+    ("Logistic Regression (Recommended)", "Random Forest")
+)
+
+# Correct mapping after selection
+if model_choice.startswith("Logistic"):
+    model_key = "logistic_regression"
+else:
+    model_key = "random_forest"
+
 model_path = f"models/{model_key}_model.pkl"
 metrics_path = f"models/{model_key}_metrics.json"
 scaler_path = "models/scaler.pkl"
@@ -58,19 +68,34 @@ except Exception as e:
     logging.error("Error loading model or data: %s", e)
     st.stop()
 
-st.markdown(f"## Current Model Accuracy: **{accuracy_display}**")
-st.subheader('Please enter applicant details below')
-st.caption("Loan eligibility is determined using a machine learning model trained on historical applicant data.")
+st.markdown(f"### 🎯 Current Model Accuracy: **{accuracy_display}**")
+st.subheader('Applicant Details')
 
 user_input = fetch_input()
+
 if user_input:
-    try:
-        prediction_proba = predict(user_input, df_processed, model, scaler, feature_order)
-        interpretation, color = interpret_probability(prediction_proba)
-        st.subheader('Loan Approval Probability')
-        fig = generate_gauge_chart(prediction_proba, interpretation, color)
-        st.plotly_chart(fig)
-        logging.info("Prediction successful with probability: %.2f", prediction_proba)
-    except Exception as e:
-        logging.error("Error during prediction: %s", e)
-        st.error(f"Error during prediction: {e}")
+    with st.spinner('Making prediction...'):
+        try:
+            prediction_proba, user_processed = predict(user_input, df_processed, model, scaler, feature_order)
+            interpretation, color = interpret_probability(prediction_proba)
+
+            # Center the gauge
+            st.markdown("<h2 style='text-align: center;'>Loan Approval Probability</h2>", unsafe_allow_html=True)
+            gauge = generate_gauge_chart(prediction_proba, interpretation, color)
+            st.plotly_chart(gauge, use_container_width=True)
+
+            logging.info("Prediction successful with probability: %.2f", prediction_proba)
+
+            # Loan Advice inside expander
+            loan_advice = generate_advice(user_input)
+
+            with st.expander('📋 Loan Officer Advice'):
+                if loan_advice:
+                    for tip in loan_advice:
+                        st.info(tip)
+                else:
+                    st.info("No specific advice for this applicant.")
+
+        except Exception as e:
+            logging.error("Error during prediction: %s", e)
+            st.error(f"Error during prediction: {e}")

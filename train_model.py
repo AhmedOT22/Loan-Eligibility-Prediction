@@ -1,6 +1,7 @@
 import logging
 import json
-from config import RAW_PATH, PROCESSED_PATH
+import pandas as pd
+from src.config import RAW_PATH, PROCESSED_PATH
 from src.data_processing.data_loader import load_data
 from src.data_processing.preprocessing import preprocess_data
 from src.data_processing.features import split_and_scale_train_test
@@ -20,7 +21,7 @@ def train_pipeline():
     - Splits and scales features
     - Trains both Random Forest and Logistic Regression models
     - Evaluates models and saves their metrics to JSON files
-    - Saves trained models and the scaler to disk
+    - Saves trained models, scaler, and background dataset for SHAP
     """
     try:
         # Load raw dataset
@@ -31,6 +32,10 @@ def train_pipeline():
 
         # Split into train/test and scale the features
         X_train, X_test, y_train, y_test, scaler, feature_order = split_and_scale_train_test(df_processed)
+
+        # Save background sample for SHAP
+        #background_data = X_train.sample(n=min(100, len(X_train)), random_state=42)
+        #background_data.to_csv("models/background_data.csv", index=False)
 
         # Train both models
         models = {
@@ -59,3 +64,5 @@ def train_pipeline():
 
 if __name__ == "__main__":
     train_pipeline()
+    logging.info("Training pipeline completed successfully.")
+    
