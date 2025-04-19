@@ -1,0 +1,108 @@
+/* ================================ */
+/* 🌟 Base Page Styling */
+/* ================================ */
+
+
+/* ================================ */
+/* 🌟 Main Title Styling */
+/* ================================ */
+h1 {
+    background-color: #561C24; /* Wine Red */
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 36px;
+    font-weight: bold;
+    margin-top: -4rem;
+    margin-bottom: 2rem;
+}
+
+/* ================================ */
+/* 🌟 Section Subheaders (Applicant Details, Financial Details) */
+/* ================================ */
+h2, h3, h5 {
+    font-weight: bold;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+/* ================================ */
+/* 🌟 Beautify the Form Container */
+/* ================================ */
+form {
+    border: 3px solid #000000; /* Inner Wine Red Border */
+    border-radius: 12px;
+    padding: 25px;
+    background-color: #FFFFFF;
+    margin-bottom: 2.5rem;
+}
+
+/* ================================ */
+/* 🌟 Predict Button Styling */
+/* ================================ */
+div.stButton > button:first-child,
+button[kind="primary"] {
+    background-color: #561C24;
+    color: rgb(255, 255, 255) !important;
+    border: none;
+    border-radius: 10px;
+    padding: 0.75em 1.5em;
+    font-weight: bold;
+    font-size: 16px;
+    margin-top: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+/* 🌟 Button Hover Effect */
+div.stButton > button:first-child:hover,
+button[kind="primary"]:hover {
+    background-color: #6D2932; /* Slightly lighter maroon on hover */
+}
+
+/* ================================ */
+/* 🌟 Beautify Selectbox Dropdown */
+/* ================================ */
+div[data-baseweb="select"] > div {
+    /*background-color: #F4F4F4;*/
+    border: 1px solid #800020;
+    border-radius: 8px;
+    padding: 6px;
+}
+
+/* 🌟 Selectbox Label (above dropdown) */
+div[data-testid="stMarkdownContainer"] > p {
+    margin-left: 8px;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+/* 🌟 Option Text in Dropdown */
+div[data-baseweb="select"] span {
+    font-size: 16px;
+    color: #2C2C2C;
+
+}
+
+/* ================================ */
+/* 🌟 Expander Background */
+/* ================================ */
+div.streamlit-expanderContent {
+    background-color: #F4F4F4;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+/* ================================ */
+/* 🌟 Metrics and Other Sections */
+/* ================================ */
+.css-1aumxhk {
+    padding: 0px 10px 0px 10px;
+}
+
+/* 🌟 Loan Officer Advice Tips */
+.advice-tip {
+    font-size: 14px;
+    color: #006400;
+    margin-left: 10px;
+}
