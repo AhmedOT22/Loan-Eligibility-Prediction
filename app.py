@@ -15,6 +15,15 @@ logging.basicConfig(filename='loan_app.log', level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(message)s')
 
 def interpret_probability(probability):
+    """
+    Interprets a loan approval probability as a descriptive label and color code.
+    
+    Args:
+        probability: Numeric probability (0–100) representing the likelihood of loan approval.
+    
+    Returns:
+        A tuple containing a textual interpretation of the probability and a corresponding color name.
+    """
     if probability >= 80:
         return "Very Likely", "green"
     elif probability >= 60:

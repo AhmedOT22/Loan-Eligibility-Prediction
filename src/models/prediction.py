@@ -4,17 +4,20 @@ from src.data_processing.preprocessing import preprocess_data
 
 def predict(user_input_dict, df_processed, model, scaler, feature_order):
     """
-    Generate a probability prediction using a trained model and user input.
-
-    Parameters:
-    - user_input_dict (dict): Dictionary of user inputs.
-    - df_processed (pd.DataFrame): Processed dataset (includes all training data).
-    - model: Trained machine learning model.
-    - scaler: Pre-fitted scaler for feature scaling.
-    - feature_order (list): Ordered list of feature names used during training.
-
+    Predicts the probability of loan approval based on user input and a trained model.
+    
+    Converts user input into a format consistent with the training data, applies preprocessing and scaling, and returns the predicted probability of loan approval as a percentage (0-100). Raises a ValueError if prediction fails.
+    	
+    Args:
+    	user_input_dict: Dictionary containing user input features.
+    	df_processed: Processed DataFrame of training data.
+    	feature_order: List specifying the order of features used during model training.
+    
     Returns:
-    - float: Probability of loan approval (0-100 scale).
+    	Probability of loan approval as a float between 0 and 100.
+    
+    Raises:
+    	ValueError: If prediction cannot be completed due to an error.
     """
     try:
         input_df = pd.DataFrame([user_input_dict])

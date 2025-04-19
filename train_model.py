@@ -13,7 +13,19 @@ logging.basicConfig(filename='loan_app.log', level=logging.INFO,
 
 def load_and_preprocess_data(raw_path, processed_path):
     """
-    Loads the raw dataset, preprocesses it, and saves the processed data.
+    Loads a processed dataset if available; otherwise, preprocesses the raw dataset and saves the result.
+    
+    If the processed data file exists at `processed_path`, loads and returns it. Otherwise, reads the raw data from `raw_path`, removes the 'Loan_ID' column if present, applies preprocessing, saves the processed data to `processed_path`, and returns the processed DataFrame.
+    
+    Args:
+        raw_path: Path to the raw dataset CSV file.
+        processed_path: Path where the processed dataset CSV will be loaded from or saved to.
+    
+    Returns:
+        A pandas DataFrame containing the processed dataset.
+    
+    Raises:
+        Exception: If loading, preprocessing, or saving the data fails.
     """
     try:
         if os.path.exists(processed_path):
@@ -32,7 +44,15 @@ def load_and_preprocess_data(raw_path, processed_path):
 
 def train_and_save_model(df_processed, model_path, scaler_path):
     """
-    Trains the model and scaler, saves both to disk, and returns the accuracy and feature names.
+    Trains a random forest model on the processed data, saves the model and scaler, and returns accuracy and feature names.
+    
+    Args:
+        df_processed: DataFrame containing preprocessed features and the 'Loan_Approved' target.
+        model_path: Path where the trained model will be saved.
+        scaler_path: Path where the fitted scaler will be saved.
+    
+    Returns:
+        A tuple containing the model's accuracy on the test set and a list of feature names.
     """
     try:
         X = df_processed.drop('Loan_Approved', axis=1)

@@ -7,10 +7,13 @@ logging.basicConfig(filename='loan_app.log', level=logging.INFO, format='%(ascti
 
 def evaluate_model(model, X_test, y_test, threshold=0.5):
     """
-    Evaluate the given model's accuracy, confusion matrix, and classification report.
-
+    Evaluates a classification model on test data and returns accuracy, confusion matrix, and classification report.
+    
+    Args:
+        threshold: Probability threshold for converting predicted probabilities to binary class labels. Default is 0.5.
+    
     Returns:
-    tuple: accuracy, confusion matrix, classification report.
+        A tuple containing the accuracy (float), confusion matrix (numpy.ndarray), and classification report (str). If evaluation fails, returns (0, None, None).
     """
     try:
         prob_pred = model.predict_proba(X_test)[:, 1]
@@ -26,10 +29,12 @@ def evaluate_model(model, X_test, y_test, threshold=0.5):
 
 def feature_importance(model, feature_names):
     """
-    Returns the importance of each feature.
-
+    Returns a DataFrame of feature importances for the given model.
+    
+    The DataFrame pairs each feature name with its corresponding importance score and is sorted in descending order of importance. Returns None if the model does not provide feature importances or an error occurs.
+    
     Returns:
-    pd.DataFrame: DataFrame sorted by feature importance.
+        pd.DataFrame or None: DataFrame of features and their importances, or None on error.
     """
     try:
         importance_df = pd.DataFrame({
@@ -44,10 +49,13 @@ def feature_importance(model, feature_names):
 
 def cross_validate_model(model, X_train, y_train, n_splits=5):
     """
-    Perform cross-validation and return accuracy scores.
-
+    Performs k-fold cross-validation on the training data and returns accuracy metrics.
+    
+    Args:
+        n_splits: Number of folds for cross-validation.
+    
     Returns:
-    dict: Cross-validation results containing mean and standard deviation of accuracy.
+        A dictionary containing the array of accuracy scores, their mean, and standard deviation.
     """
     try:
         kfold = KFold(n_splits=n_splits)

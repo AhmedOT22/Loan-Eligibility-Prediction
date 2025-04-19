@@ -5,13 +5,12 @@ logging.basicConfig(filename='loan_app.log', level=logging.INFO, format='%(ascti
 
 def preprocess_data(df):
     """
-    Preprocess data by handling missing values and encoding categorical features.
-
-    Parameters:
-    df (pd.DataFrame): Input DataFrame.
-
+    Preprocesses a loan application DataFrame by handling missing values and encoding categorical features.
+    
+    Missing values in categorical columns are filled with the mode, while missing values in the 'LoanAmount' column are filled with the median. Categorical features are one-hot encoded, and the 'Loan_Approved' column is converted from 'Y'/'N' to 1/0 if present.
+    
     Returns:
-    pd.DataFrame: Preprocessed DataFrame, or None if error occurs.
+        The preprocessed DataFrame, or None if an error occurs during processing.
     """
     try:
         df = df.copy()
