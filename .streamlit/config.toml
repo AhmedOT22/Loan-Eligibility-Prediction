@@ -1,0 +1,13 @@
+[theme]
+primaryColor = "#561C24"         # Wine red / maroon
+backgroundColor = "#E8D8C4"      # Off-white background
+secondaryBackgroundColor = "#F4F4F4"   # Light gray for side panels
+textColor = "#2C2C2C"            # Dark gray text
+font = "sans serif"              # Clean modern font
+
+[server]
+headless = true
+runOnSave = true
+
+[client]
+showSidebarNavigation = false

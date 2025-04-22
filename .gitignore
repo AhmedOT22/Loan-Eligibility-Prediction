@@ -21,9 +21,6 @@ venv/
 .pytest_cache/
 .cache/
 
-# Streamlit's internal file
-.streamlit/
-
 # OS files
 .DS_Store
 Thumbs.db
