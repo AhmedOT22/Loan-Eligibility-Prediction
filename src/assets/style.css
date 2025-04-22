@@ -1,10 +1,10 @@
 /* ================================ */
-/* 🌟 Base Page Styling */
+/* Base Page Styling */
 /* ================================ */
 
 
 /* ================================ */
-/* 🌟 Main Title Styling */
+/* Main Title Styling */
 /* ================================ */
 h1 {
     background-color: #561C24; /* Wine Red */
@@ -19,7 +19,7 @@ h1 {
 }
 
 /* ================================ */
-/* 🌟 Section Subheaders (Applicant Details, Financial Details) */
+/* Section Subheaders (Applicant Details, Financial Details) */
 /* ================================ */
 h2, h3, h5 {
     font-weight: bold;
@@ -28,7 +28,7 @@ h2, h3, h5 {
 }
 
 /* ================================ */
-/* 🌟 Beautify the Form Container */
+/* Form Container */
 /* ================================ */
 form {
     border: 3px solid #000000; /* Inner Wine Red Border */
@@ -39,7 +39,7 @@ form {
 }
 
 /* ================================ */
-/* 🌟 Predict Button Styling */
+/* Predict Button Styling */
 /* ================================ */
 div.stButton > button:first-child,
 button[kind="primary"] {
@@ -54,14 +54,14 @@ button[kind="primary"] {
     transition: background-color 0.3s ease;
 }
 
-/* 🌟 Button Hover Effect */
+/* Button Hover Effect */
 div.stButton > button:first-child:hover,
 button[kind="primary"]:hover {
     background-color: #6D2932; /* Slightly lighter maroon on hover */
 }
 
 /* ================================ */
-/* 🌟 Beautify Selectbox Dropdown */
+/* Beautify Selectbox Dropdown */
 /* ================================ */
 div[data-baseweb="select"] > div {
     /*background-color: #F4F4F4;*/
@@ -70,14 +70,14 @@ div[data-baseweb="select"] > div {
     padding: 6px;
 }
 
-/* 🌟 Selectbox Label (above dropdown) */
+/* Selectbox Label (above dropdown) */
 div[data-testid="stMarkdownContainer"] > p {
     margin-left: 8px;
     font-weight: 700;
     font-size: 16px;
 }
 
-/* 🌟 Option Text in Dropdown */
+/* Option Text in Dropdown */
 div[data-baseweb="select"] span {
     font-size: 16px;
     color: #2C2C2C;
@@ -85,7 +85,7 @@ div[data-baseweb="select"] span {
 }
 
 /* ================================ */
-/* 🌟 Expander Background */
+/* Expander Background */
 /* ================================ */
 div.streamlit-expanderContent {
     background-color: #F4F4F4;
@@ -94,13 +94,13 @@ div.streamlit-expanderContent {
 }
 
 /* ================================ */
-/* 🌟 Metrics and Other Sections */
+/* Metrics and Other Sections */
 /* ================================ */
 .css-1aumxhk {
     padding: 0px 10px 0px 10px;
 }
 
-/* 🌟 Loan Officer Advice Tips */
+/* Loan Officer Advice Tips */
 .advice-tip {
     font-size: 14px;
     color: #006400;
