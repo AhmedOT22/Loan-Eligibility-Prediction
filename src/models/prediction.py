@@ -1,49 +1,36 @@
+"""Inference adapter for the existing app's encoded model/scaler artifacts."""
+import numpy as np
 import pandas as pd
-from src.data_processing.preprocessing import preprocess_data
+from src.models.pipeline import CATEGORICAL, NUMERIC
+
 
 def predict(user_input_dict, df_processed, model, scaler, feature_order):
-    """
-    Generate a probability prediction and return preprocessed input.
-
-    Parameters:
-    - user_input_dict (dict): Dictionary of user inputs.
-    - df_processed (pd.DataFrame): Processed dataset (includes all training data).
-    - model: Trained machine learning model.
-    - scaler: Pre-fitted scaler for feature scaling.
-    - feature_order (list): Ordered list of feature names used during training.
-
-    Returns:
-    - float: Probability of loan approval (0-100 scale).
-    - pd.DataFrame: Preprocessed (but not scaled) user input ready for SHAP explanation.
-    """
-    try:
-        # Ensure user input is in the correct format
-        input_df = pd.DataFrame([user_input_dict])
-
-        # Preprocess the input data
-        reference_df = df_processed.drop('Loan_Approved', axis=1).copy()
-        combined_df = pd.concat([input_df, reference_df], axis=0, ignore_index=True)
-
-        # Preprocess the combined data
-        combined_processed = preprocess_data(combined_df)
-        user_processed = combined_processed.iloc[0:1].copy()
-
-        # Remove duplicate columns if any
-        user_processed = user_processed.loc[:, ~user_processed.columns.duplicated()].copy()
-        feature_order = pd.Index(feature_order).drop_duplicates().tolist()
-        user_processed = user_processed.reindex(columns=feature_order, fill_value=0)
-
-        # Fill any remaining missing values
-        user_processed.fillna(0, inplace=True)
-        
-        # Force numeric
-        user_processed = user_processed.apply(pd.to_numeric, errors='coerce')
-
-        # Scale the user input using the pre-fitted scaler
-        user_scaled = scaler.transform(user_processed)
-        probability = model.predict_proba(user_scaled)[0][1] * 100
-
-        return probability, user_processed # Return the preprocessed input for SHAP explanation
-
-    except Exception as e:
-        raise ValueError(f"Prediction failed: {e}")
+    # df_processed remains in the signature for the existing app; it is never
+    # concatenated with a raw applicant or used to fit preprocessing at inference.
+    required = set(CATEGORICAL + NUMERIC)
+    if required - set(user_input_dict):
+        raise ValueError(f'Missing applicant fields: {sorted(required - set(user_input_dict))}')
+    if len(feature_order) != len(set(feature_order)):
+        raise ValueError('Feature order contains duplicates.')
+    frame = pd.DataFrame([user_input_dict])[CATEGORICAL + NUMERIC]
+    if frame.isna().any().any():
+        raise ValueError('Complete all applicant fields before predicting.')
+    frame[NUMERIC] = frame[NUMERIC].apply(pd.to_numeric, errors='raise')
+    if not np.isfinite(frame[NUMERIC].to_numpy(dtype=float)).all() or (frame[NUMERIC] < 0).any().any():
+        raise ValueError('Applicant numeric values must be finite and non-negative.')
+    encoded = pd.get_dummies(frame, columns=CATEGORICAL, dtype=int)
+    unknown = set(encoded.columns) - set(feature_order)
+    if unknown:
+        raise ValueError(f'Unsupported applicant categories: {sorted(unknown)}')
+    encoded = encoded.reindex(columns=feature_order, fill_value=0)
+    expected = getattr(scaler, 'feature_names_in_', None)
+    if expected is not None and list(expected) != list(feature_order):
+        raise ValueError('Scaler and application feature order do not match.')
+    scaled = scaler.transform(encoded)
+    if hasattr(model, 'feature_names_in_'):
+        if list(model.feature_names_in_) != list(feature_order):
+            raise ValueError('Model and application feature order do not match.')
+        scaled = pd.DataFrame(scaled, columns=feature_order)
+    positive_index = list(model.classes_).index(1)
+    probability = float(model.predict_proba(scaled)[0][positive_index] * 100)
+    return probability, encoded

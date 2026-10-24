@@ -27,3 +27,6 @@ Thumbs.db
 
 # Env files
 .env
+
+# Generated candidate evaluations
+reports/latest/

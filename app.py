@@ -18,6 +18,7 @@ load_custom_styles()
 
 # --- Title ---
 st.title('🏦 Loan Eligibility Prediction App')
+st.caption('Educational demonstration. Scores are uncalibrated model outputs, not lender approval probabilities or decisions.')
 
 # --- Model Selection ---
 model_key = model_selector()
@@ -56,7 +57,7 @@ if user_input:
             interpretation, color = interpret_probability(prediction_proba)
 
             # Display only Gauge
-            st.subheader("📊 Loan Approval Probability")
+            st.subheader("📊 Model Score")
             gauge = generate_gauge_chart(prediction_proba, interpretation, color)
             st.plotly_chart(gauge, use_container_width=True)
 
@@ -65,7 +66,7 @@ if user_input:
             # --- Loan Officer Advice ---
             loan_advice = generate_advice(user_input)
 
-            with st.expander('📋 Loan Officer Advice'):
+            with st.expander('📋 Illustrative Input Checks'):
                 if loan_advice:
                     for tip in loan_advice:
                         st.info(f"✅ {tip}")
