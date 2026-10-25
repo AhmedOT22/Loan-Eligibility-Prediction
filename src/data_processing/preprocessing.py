@@ -21,7 +21,7 @@ def preprocess_data(df, output_path=None):
         output_path (str, optional): Path to save the processed DataFrame.
 
     Returns:
-        pd.DataFrame: Preprocessed DataFrame, or None if error occurs.
+        pd.DataFrame: Preprocessed DataFrame. Invalid input and write failures propagate.
     """
     try:
         df = df.copy()

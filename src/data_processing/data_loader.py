@@ -17,7 +17,7 @@ def load_data(filepath):
     filepath (str): Path to the CSV file.
 
     Returns:
-    pd.DataFrame: Loaded DataFrame, or None if an error occurs.
+    pd.DataFrame: Loaded DataFrame. Read and conversion failures propagate to the caller.
     """
     try:
         df = pd.read_csv(filepath)

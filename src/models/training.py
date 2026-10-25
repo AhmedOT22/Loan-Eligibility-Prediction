@@ -15,7 +15,7 @@ def train_logistic_regression(x_train, y_train):
     Train Logistic Regression model.
 
     Returns:
-    model: Trained logistic regression model, or None if training fails.
+    model: Trained logistic regression model. Fitting failures propagate.
     """
     try:
         model = LogisticRegression().fit(x_train, y_train)
@@ -31,7 +31,7 @@ def train_random_forest(x_train, y_train, n_estimators=100, max_depth=None):
     Train Random Forest model.
 
     Returns:
-    model: Trained random forest model, or None if training fails.
+    model: Trained random forest model. Fitting failures propagate.
     """
     try:
         model = RandomForestClassifier(
