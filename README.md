@@ -40,7 +40,7 @@ The CSV does not establish its original publisher, source URL, collection period
 
 ## Run locally
 
-Use Python 3.11 from the repository root:
+Use Python 3.11 or 3.12 from the repository root:
 
 ```bash
 git clone https://github.com/AhmedOT22/Loan-Eligibility-Prediction.git
@@ -53,7 +53,7 @@ python -m pip install -r requirements-dev.txt
 streamlit run app.py
 ```
 
-The serving dependency is pinned to scikit-learn 1.4.2 to match the bundled artifacts. Only load pickle/joblib artifacts from trusted sources. Live demo availability was not verified in this code update.
+The serving environment pins scikit-learn 1.4.2 to match the bundled artifacts, Streamlit 1.50.0 for tested application flows, and PyArrow 20.0.0 for compatibility with NumPy 1.x. Only load pickle/joblib artifacts from trusted sources. Live demo availability was not verified in this code update.
 
 ## Train without replacing app artifacts
 
@@ -69,7 +69,7 @@ Training errors propagate instead of being swallowed with a success log. Importi
 
 ## Existing app preparation
 
-The app's adapter directly encodes a complete applicant, checks category and feature-order compatibility, and uses the fitted legacy scaler without fitting anything at inference. It no longer concatenates a raw applicant with the processed training table. Missing fields and unsupported categories fail explicitly. The gauge is labelled as a model score and input tips as illustrative checks, not loan-officer advice.
+The app's adapter directly encodes a complete applicant, checks category and feature-order compatibility, and uses the fitted legacy scaler without fitting anything at inference. It no longer concatenates a raw applicant with the processed training table. Missing fields and unsupported categories fail explicitly. The gauge and score-band labels describe an uncalibrated model score. Input tips are illustrative checks. Model, scaler, and CSS paths are anchored to the repository; the feature order comes from the fitted scaler, so startup does not depend on the processed CSV.
 
 ## Tests
 
@@ -77,8 +77,14 @@ The app's adapter directly encodes a complete applicant, checks category and fea
 python -m pytest -q
 ```
 
-Tests cover train-only imputation statistics, unseen-category transformation without refitting, disjoint splits, invalid target rejection, legacy applicant encoding, and independence from the supplied reference table. Both bundled classifiers were also smoke-tested with the repaired adapter under scikit-learn 1.4.2. A CI workflow runs the test suite.
+Tests cover train-only imputation statistics, unseen-category transformation without refitting, disjoint splits, invalid target rejection, legacy applicant encoding, and independence from the supplied reference table. Both bundled classifiers were also smoke-tested with the repaired adapter under scikit-learn 1.4.2. Streamlit application tests also submit forms through both bundled classifiers from a different working directory. Legacy helper failures propagate instead of returning success-shaped defaults. CI runs the tests and full Pylint checks with installed project dependencies.
 
 Further work should evaluate repeatability across splits, threshold selection on validation data, calibration, and an explicit migration of serving artifacts if new pipelines are adopted. No external data collection is needed to continue those code changes.
 
 [MIT License](LICENSE) · [Ahmed Ouazzani](https://github.com/AhmedOT22)
+
+To run the same lint check locally:
+
+```bash
+python -m pylint $(git ls-files '*.py')
+```

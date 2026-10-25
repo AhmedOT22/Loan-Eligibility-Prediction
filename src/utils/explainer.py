@@ -1,7 +1,13 @@
-import shap
+"""Optional experimental SHAP helper; not used by the application."""
+
+try:
+    import shap
+except ImportError:
+    shap = None
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+
 
 # Not used in the current code but kept for potential future use
 def explain_prediction(model, user_processed, background_data=None):
@@ -16,9 +22,11 @@ def explain_prediction(model, user_processed, background_data=None):
     Returns:
         pd.DataFrame: Top 3 feature contributions sorted by absolute impact.
     """
+    if shap is None:
+        raise ImportError("Install SHAP separately to use this optional helper.")
     try:
         feature_names = user_processed.columns.tolist()
-        
+
         if isinstance(model, LogisticRegression):
             explainer = shap.Explainer(model.predict, masker=user_processed)
             shap_values = explainer(user_processed)
@@ -40,13 +48,12 @@ def explain_prediction(model, user_processed, background_data=None):
         else:
             raise ValueError("Unsupported model type for SHAP explanations.")
 
-        shap_df = pd.DataFrame({
-            'feature': feature_names,
-            'contribution': shap_contributions
-        }).sort_values(by='contribution', key=abs, ascending=False)
+        shap_df = pd.DataFrame(
+            {"feature": feature_names, "contribution": shap_contributions}
+        ).sort_values(by="contribution", key=abs, ascending=False)
 
         top_features = shap_df.head(3)
         return top_features
 
     except Exception as e:
-        raise ValueError(f"SHAP explanation failed: {e}")
+        raise ValueError(f"SHAP explanation failed: {e}") from e

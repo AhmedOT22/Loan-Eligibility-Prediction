@@ -1,7 +1,10 @@
-streamlit==1.27.2
+streamlit==1.50.0
 pandas>=2.2,<3
 numpy>=1.24,<2
 # Serving artifacts were created with this version.
 scikit-learn==1.4.2
 plotly>=5.18,<6
 joblib>=1.3,<2
+
+# PyArrow 20 supports the NumPy 1.x environment used by the bundled estimators.
+pyarrow==20.0.0

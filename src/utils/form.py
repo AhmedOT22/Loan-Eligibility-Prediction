@@ -1,125 +1,78 @@
-import streamlit as st
-import os
+"""Applicant form widgets and model score display helpers."""
+
 import json
+from pathlib import Path
+
+import streamlit as st
+
+from src.config import BASE_DIR
+
 
 def fetch_input():
-    """
-    Renders a loan application form in the Streamlit UI and collects user input.
-
-    Returns:
-        dict or None: A dictionary of user inputs if submitted, else None.
-    """
+    """Render raw applicant fields and return a dictionary only after submission."""
     with st.form("loan_form"):
-        st.subheader("📋 Applicant Details") 
-        col1, col2, col3 = st.columns(3)
-
-        with col1:
-            Gender = st.selectbox('Gender', ('Male', 'Female'))
-            Married = st.selectbox('Married', ('Yes', 'No'))
-            Dependents = st.selectbox('Dependents', ('0', '1', '2', '3+'))
-
-        with col2:
-            Education = st.selectbox('Education', ('Graduate', 'Not Graduate'))
-            Self_Employed = st.selectbox('Self Employed', ('Yes', 'No'))
-            Credit_History = st.selectbox('Credit History', ('1.0', '0.0'))
-
-        with col3:
-            Property_Area = st.selectbox('Property Area', ('Urban', 'Semiurban', 'Rural'))
-            Loan_Amount_Term = st.selectbox('Loan Amount Term', ('360', '180', '120', '240'))
-
+        st.subheader("📋 Applicant Details")
+        values = {}
+        columns = st.columns(3)
+        fields = [
+            ("Gender", ("Male", "Female")),
+            ("Married", ("Yes", "No")),
+            ("Dependents", ("0", "1", "2", "3+")),
+            ("Education", ("Graduate", "Not Graduate")),
+            ("Self_Employed", ("Yes", "No")),
+            ("Credit_History", ("1.0", "0.0")),
+            ("Property_Area", ("Urban", "Semiurban", "Rural")),
+            ("Loan_Amount_Term", ("360", "180", "120", "240")),
+        ]
+        for index, (name, choices) in enumerate(fields):
+            with columns[min(index // 3, 2)]:
+                values[name] = st.selectbox(name.replace("_", " "), choices)
         st.subheader("💰 Financial Details")
-
-        col4, col5 = st.columns(2)
-
-        with col4:
-            ApplicantIncome = st.number_input('Applicant Income', min_value=0, step=100)
-
-        with col5:
-            CoapplicantIncome = st.number_input('Coapplicant Income', min_value=0, step=100)
-
-        LoanAmount = st.number_input('Loan Amount', min_value=1, step=1)
-
+        columns = st.columns(2)
+        for column, name in zip(columns, ["ApplicantIncome", "CoapplicantIncome"]):
+            with column:
+                values[name] = st.number_input(name, min_value=0, step=100)
+        values["LoanAmount"] = st.number_input("Loan Amount", min_value=1, step=1)
         submitted = st.form_submit_button("Predict Loan Eligibility", use_container_width=True)
+    return values if submitted else None
 
-    if submitted:
-        return {
-            'Gender': Gender,
-            'Married': Married,
-            'Dependents': Dependents,
-            'Education': Education,
-            'Self_Employed': Self_Employed,
-            'ApplicantIncome': ApplicantIncome,
-            'CoapplicantIncome': CoapplicantIncome,
-            'LoanAmount': LoanAmount,
-            'Loan_Amount_Term': Loan_Amount_Term,
-            'Credit_History': Credit_History,
-            'Property_Area': Property_Area
-        }
-    return None
 
 def interpret_probability(probability):
-    """
-    Returns interpretation text and associated color based on the loan approval probability.
-
-    Args:
-        probability (float): Loan approval probability in percentage.
-
-    Returns:
-        tuple: (interpretation_text, color_code)
-    """
+    """Label uncalibrated classifier-score bands without implying lender odds."""
     if probability >= 80:
-        return "Very Likely", "green"
-    elif probability >= 60:
-        return "Likely", "limegreen"
-    elif probability >= 40:
-        return "Somewhat Likely", "yellow"
-    elif probability >= 20:
-        return "Unlikely", "orange"
-    else:
-        return "Very Unlikely", "red"
+        return "Very high model score", "green"
+    if probability >= 60:
+        return "High model score", "limegreen"
+    if probability >= 40:
+        return "Middle model score", "yellow"
+    if probability >= 20:
+        return "Low model score", "orange"
+    return "Very low model score", "red"
+
 
 def model_selector():
-    """
-    Renders a model selection dropdown and returns the selected model key.
-
-    Returns:
-        str: Model key ('logistic_regression' or 'random_forest')
-    """
-    model_choice = st.selectbox(
-    "Choose your prediction model:",
-    ("Logistic Regression (Recommended)", "Random Forest")
+    """Return the selected bundled classifier's filename key."""
+    choice = st.selectbox(
+        "Choose your prediction model:", ("Logistic Regression (Recommended)", "Random Forest")
     )
+    return "logistic_regression" if choice.startswith("Logistic") else "random_forest"
 
-    if model_choice.startswith("Logistic"):
-        return "logistic_regression"
-    else:
-        return "random_forest"
 
 def display_model_info(metrics_path):
-    """
-    Displays the model accuracy or pretrained status.
+    """Display stored legacy accuracy, or an explicit unavailable status."""
+    try:
+        with Path(metrics_path).open(encoding="utf-8") as handle:
+            metrics = json.load(handle)
+        accuracy_display = f"{metrics['accuracy']:.2%}"
+    except (OSError, ValueError, KeyError, TypeError):
+        accuracy_display = "Unavailable"
+    st.subheader(f"🎯 Stored Model Accuracy: **{accuracy_display}**")
 
-    Args:
-        metrics_path (str): Path to the metrics JSON file.
-    """
-    if os.path.exists(metrics_path):
-        try:
-            with open(metrics_path) as f:
-                metrics = json.load(f)
-            accuracy_display = f"{metrics['accuracy']:.2%}"
-        except Exception as e:
-            accuracy_display = "Pretrained"
-    else:
-        accuracy_display = "Pretrained"
-
-    st.subheader(f"🎯 Current Model Accuracy: **{accuracy_display}**")
 
 def load_custom_styles():
-    """
-    Loads external CSS styling for the app from src/assets/style.css.
-    """
+    """Read app styles from a repository-relative resource."""
     try:
-        with open('src/assets/style.css') as f:
-            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-    except Exception as e:
-        st.error(f"Failed to load custom styles: {e}")
+        css = (BASE_DIR / "src/assets/style.css").read_text(encoding="utf-8")
+        st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+    except OSError as error:
+        st.error(f"Failed to load custom styles: {error}")

@@ -1,78 +1,94 @@
-import streamlit as st
-import pandas as pd
-import plotly.graph_objects as go
+"""Streamlit demonstration of scores from the bundled loan classifiers."""
+
 import logging
+
 import joblib
+import streamlit as st
 
-from src.config import PROCESSED_PATH
+from src.config import BASE_DIR
 from src.models.prediction import predict
-from src.utils.form import fetch_input, interpret_probability, display_model_info, load_custom_styles, model_selector
-from src.utils.gauge import generate_gauge_chart
 from src.utils.advice import generate_advice
+from src.utils.form import (
+    display_model_info,
+    fetch_input,
+    interpret_probability,
+    load_custom_styles,
+    model_selector,
+)
+from src.utils.gauge import generate_gauge_chart
 
-# --- Streamlit Page Config ---
-st.set_page_config(page_title='Loan Eligibility Prediction', layout='centered')
 
-# --- Load Custom Styles ---
-load_custom_styles()
+def main():
+    """Render the applicant form and score using the existing serving artifacts."""
+    # --- Streamlit Page Config ---
+    st.set_page_config(page_title="Loan Eligibility Prediction", layout="centered")
 
-# --- Title ---
-st.title('🏦 Loan Eligibility Prediction App')
-st.caption('Educational demonstration. Scores are uncalibrated model outputs, not lender approval probabilities or decisions.')
+    # --- Load Custom Styles ---
+    load_custom_styles()
 
-# --- Model Selection ---
-model_key = model_selector()
-model_path = f"models/{model_key}_model.pkl"
-metrics_path = f"models/{model_key}_metrics.json"
-scaler_path = "models/scaler.pkl"
+    # --- Title ---
+    st.title("🏦 Loan Eligibility Prediction App")
+    st.caption(
+        "Educational demonstration. Scores are uncalibrated model outputs, "
+        "not lender approval probabilities or decisions."
+    )
 
-# --- Configure Logging ---
-logging.basicConfig(filename='loan_app.log', level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+    # --- Model Selection ---
+    model_key = model_selector()
+    metrics_path = BASE_DIR / "models" / f"{model_key}_metrics.json"
 
-# --- Load Model, Scaler, Processed Data ---
-try:
-    model = joblib.load(model_path)
-    scaler = joblib.load(scaler_path)
-    df_processed = pd.read_csv(PROCESSED_PATH)
-    feature_order = df_processed.drop('Loan_Approved', axis=1).columns.tolist()
+    # --- Configure Logging ---
+    logging.basicConfig(
+        filename="loan_app.log", level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
+    )
 
-    logging.info("Model, scaler, and processed data loaded successfully.")
+    # --- Load Model, Scaler, Processed Data ---
+    try:
+        model = joblib.load(BASE_DIR / "models" / f"{model_key}_model.pkl")
+        scaler = joblib.load(BASE_DIR / "models/scaler.pkl")
+        feature_order = scaler.feature_names_in_.tolist()
 
-except Exception as e:
-    st.error(f"Error loading model or data: {e}")
-    logging.error("Error loading model or data: %s", e)
-    st.stop()
+        logging.info("Model, scaler, and processed data loaded successfully.")
 
-# --- Display Model Info ---
-display_model_info(metrics_path)
+    except (OSError, ValueError, TypeError, KeyError, ImportError, EOFError) as e:
+        st.error(f"Error loading model or data: {e}")
+        logging.error("Error loading model or data: %s", e)
+        st.stop()
 
-# --- Applicant Form ---
-user_input = fetch_input()
+    # --- Display Model Info ---
+    display_model_info(metrics_path)
 
-# --- Prediction ---
-if user_input:
-    with st.spinner('Making prediction...'):
-        try:
-            prediction_proba, user_processed = predict(user_input, df_processed, model, scaler, feature_order)
-            interpretation, color = interpret_probability(prediction_proba)
+    # --- Applicant Form ---
+    user_input = fetch_input()
 
-            # Display only Gauge
-            st.subheader("📊 Model Score")
-            gauge = generate_gauge_chart(prediction_proba, interpretation, color)
-            st.plotly_chart(gauge, use_container_width=True)
+    # --- Prediction ---
+    if user_input:
+        with st.spinner("Making prediction..."):
+            try:
+                prediction_proba, _ = predict(user_input, None, model, scaler, feature_order)
+                interpretation, color = interpret_probability(prediction_proba)
 
-            logging.info("Prediction successful with probability: %.2f", prediction_proba)
+                # Display only Gauge
+                st.subheader("📊 Model Score")
+                gauge = generate_gauge_chart(prediction_proba, interpretation, color)
+                st.plotly_chart(gauge, use_container_width=True)
 
-            # --- Loan Officer Advice ---
-            loan_advice = generate_advice(user_input)
+                logging.info("Prediction successful with probability: %.2f", prediction_proba)
 
-            with st.expander('📋 Illustrative Input Checks'):
-                if loan_advice:
-                    for tip in loan_advice:
-                        st.info(f"✅ {tip}")
-                else:
-                    st.info("No specific advice for this applicant.")
+                # --- Loan Officer Advice ---
+                loan_advice = generate_advice(user_input)
 
-        except Exception as e:
-            logging.error("Error during prediction: %s", e)
-            st.error(f"Error during prediction: {e}")
+                with st.expander("📋 Illustrative Input Checks"):
+                    if loan_advice:
+                        for tip in loan_advice:
+                            st.info(f"✅ {tip}")
+                    else:
+                        st.info("No specific advice for this applicant.")
+
+            except (OSError, ValueError, TypeError, KeyError, ImportError, EOFError) as e:
+                logging.error("Error during prediction: %s", e)
+                st.error(f"Error during prediction: {e}")
+
+
+if __name__ == "__main__":
+    main()
