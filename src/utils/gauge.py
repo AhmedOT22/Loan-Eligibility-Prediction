@@ -5,8 +5,7 @@ import plotly.graph_objects as go
 
 def generate_gauge_chart(probability, interpretation, color):
     """
-    Returns a customized Plotly gauge chart visualizing the loan approval probability
-    with an arrow-like pointer to highlight the current value.
+    Return a gauge for an uncalibrated classifier score on a 0–100 scale.
     """
     del color  # Kept for existing callers; fixed score bands determine colors.
     return go.Figure(

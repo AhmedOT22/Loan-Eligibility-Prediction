@@ -10,7 +10,7 @@ from src.utils import explainer
 APP = Path(__file__).resolve().parents[1] / "app.py"
 
 
-@pytest.mark.parametrize("choice", ["Logistic Regression (Recommended)", "Random Forest"])
+@pytest.mark.parametrize("choice", ["Logistic Regression", "Random Forest"])
 def test_submit_applicant_from_another_working_directory(monkeypatch, tmp_path, choice):
     """Load resources and complete a submission independently of the launch directory."""
     monkeypatch.chdir(tmp_path)
@@ -24,6 +24,9 @@ def test_submit_applicant_from_another_working_directory(monkeypatch, tmp_path, 
     app.button[0].click().run(timeout=30)
     assert not app.exception
     assert not app.error
+    assert not (tmp_path / "loan_app.log").exists()
+    assert not any("approval chances" in item.value for item in app.info)
+    assert any("older bundled model" in item.value for item in app.caption)
     assert any(header.value == "📊 Model Score" for header in app.subheader)
 
 

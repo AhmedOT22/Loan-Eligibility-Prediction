@@ -33,7 +33,7 @@ def fetch_input():
             with column:
                 values[name] = st.number_input(name, min_value=0, step=100)
         values["LoanAmount"] = st.number_input("Loan Amount", min_value=1, step=1)
-        submitted = st.form_submit_button("Predict Loan Eligibility", use_container_width=True)
+        submitted = st.form_submit_button("Calculate Model Score", use_container_width=True)
     return values if submitted else None
 
 
@@ -53,7 +53,7 @@ def interpret_probability(probability):
 def model_selector():
     """Return the selected bundled classifier's filename key."""
     choice = st.selectbox(
-        "Choose your prediction model:", ("Logistic Regression (Recommended)", "Random Forest")
+        "Choose your prediction model:", ("Logistic Regression", "Random Forest")
     )
     return "logistic_regression" if choice.startswith("Logistic") else "random_forest"
 
@@ -66,7 +66,17 @@ def display_model_info(metrics_path):
         accuracy_display = f"{metrics['accuracy']:.2%}"
     except (OSError, ValueError, KeyError, TypeError):
         accuracy_display = "Unavailable"
-    st.subheader(f"🎯 Stored Model Accuracy: **{accuracy_display}**")
+    with st.expander("About this bundled model"):
+        st.write(f"Historical stored accuracy: {accuracy_display}")
+        st.caption(
+            "This figure belongs to the older encoded model and its original evaluation. "
+            "It is not the train-only pipeline result reported in the README. The legacy "
+            "preparation used whole-dataset statistics, so this is not a clean holdout estimate."
+        )
+    st.caption(
+        "Amounts use the CSV's original numeric scale; currency and amount units are "
+        "unverified. Gender and other demographic fields reflect the legacy feature schema."
+    )
 
 
 def load_custom_styles():

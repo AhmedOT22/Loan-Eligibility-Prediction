@@ -7,7 +7,6 @@ import streamlit as st
 
 from src.config import BASE_DIR
 from src.models.prediction import predict
-from src.utils.advice import generate_advice
 from src.utils.form import (
     display_model_info,
     fetch_input,
@@ -37,18 +36,13 @@ def main():
     model_key = model_selector()
     metrics_path = BASE_DIR / "models" / f"{model_key}_metrics.json"
 
-    # --- Configure Logging ---
-    logging.basicConfig(
-        filename="loan_app.log", level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
-    )
-
-    # --- Load Model, Scaler, Processed Data ---
+    # --- Load Model and Scaler ---
     try:
         model = joblib.load(BASE_DIR / "models" / f"{model_key}_model.pkl")
         scaler = joblib.load(BASE_DIR / "models/scaler.pkl")
         feature_order = scaler.feature_names_in_.tolist()
 
-        logging.info("Model, scaler, and processed data loaded successfully.")
+        logging.info("Bundled model and scaler loaded successfully.")
 
     except (OSError, ValueError, TypeError, KeyError, ImportError, EOFError) as e:
         st.error(f"Error loading model or data: {e}")
@@ -73,17 +67,10 @@ def main():
                 gauge = generate_gauge_chart(prediction_proba, interpretation, color)
                 st.plotly_chart(gauge, use_container_width=True)
 
-                logging.info("Prediction successful with probability: %.2f", prediction_proba)
-
-                # --- Loan Officer Advice ---
-                loan_advice = generate_advice(user_input)
-
-                with st.expander("📋 Illustrative Input Checks"):
-                    if loan_advice:
-                        for tip in loan_advice:
-                            st.info(f"✅ {tip}")
-                    else:
-                        st.info("No specific advice for this applicant.")
+                st.caption(
+                    "This score comes from the older bundled model. The README's evaluation "
+                    "covers separate pipelines with train-only preprocessing."
+                )
 
             except (OSError, ValueError, TypeError, KeyError, ImportError, EOFError) as e:
                 logging.error("Error during prediction: %s", e)
