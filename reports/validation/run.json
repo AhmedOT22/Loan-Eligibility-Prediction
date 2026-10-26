@@ -1,0 +1,21 @@
+{
+  "input_sha256": "f3307197e4d81fddafc568034415eefab3346ff3368826368f40cf5f587b60ec",
+  "validation_rows": 491,
+  "positive_count": 337,
+  "splits": 5,
+  "repeats": 3,
+  "random_state": 42,
+  "boundary": "Only the 80% training partition from split_raw; holdout excluded",
+  "threshold": "0.5 fixed; diagnostics are not threshold optimization",
+  "baseline": "Majority labels with training class-prior scores (DummyClassifier prior)",
+  "uncertainty": "Fold SD is descriptive; overlapping folds are not independent samples",
+  "calibration": "Brier scores diagnose uncalibrated outputs; no calibrator is fitted",
+  "privacy": "Aggregate statistics only; no applicant indices, labels, or scores exported",
+  "packages": {
+    "numpy": "1.26.4",
+    "pandas": "2.3.3",
+    "scikit-learn": "1.4.2",
+    "joblib": "1.6.0",
+    "matplotlib": "3.11.2"
+  }
+}
