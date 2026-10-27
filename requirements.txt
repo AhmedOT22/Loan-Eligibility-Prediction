@@ -1,6 +1,8 @@
 streamlit==1.50.0
 pandas>=2.2,<3
 numpy>=1.24,<2
+# sklearn 1.4 training uses optimizer options removed in SciPy 1.18.
+scipy>=1.11.4,<1.18
 # Serving artifacts were created with this version.
 scikit-learn==1.4.2
 plotly>=5.18,<6

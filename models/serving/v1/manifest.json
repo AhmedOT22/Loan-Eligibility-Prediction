@@ -1,0 +1,151 @@
+{
+  "format_version": 1,
+  "release": "train-only-v1",
+  "built_at_utc": "2026-10-27T12:13:57.940900+00:00",
+  "input_sha256": "f3307197e4d81fddafc568034415eefab3346ff3368826368f40cf5f587b60ec",
+  "features": [
+    "Gender",
+    "Married",
+    "Dependents",
+    "Education",
+    "Self_Employed",
+    "Property_Area",
+    "ApplicantIncome",
+    "CoapplicantIncome",
+    "LoanAmount",
+    "Loan_Amount_Term",
+    "Credit_History"
+  ],
+  "target": {
+    "column": "Loan_Approved",
+    "positive": "Y",
+    "classes": [
+      0,
+      1
+    ]
+  },
+  "split": {
+    "seed": 42,
+    "test_size": 0.2,
+    "train_rows": 491,
+    "holdout_rows": 123
+  },
+  "training": "Full preprocessing fitted on training rows only; no full-data refit",
+  "threshold": 0.5,
+  "calibrated": false,
+  "packages": {
+    "numpy": "1.26.4",
+    "pandas": "2.3.3",
+    "scikit-learn": "1.4.2",
+    "scipy": "1.17.1",
+    "joblib": "1.6.0"
+  },
+  "models": {
+    "logistic_regression": {
+      "sha256": "12d823f91b0390d5468bef9f7a3051b86d91c0837e89f165a3ca47d67f45c1dc",
+      "holdout_metrics": {
+        "accuracy": 0.8536585365853658,
+        "precision": 0.8316831683168316,
+        "recall": 0.9882352941176471,
+        "f1": 0.9032258064516129,
+        "roc_auc": 0.8523219814241486,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            21,
+            17
+          ],
+          [
+            1,
+            84
+          ]
+        ]
+      },
+      "categories": {
+        "Gender": [
+          "Female",
+          "Male"
+        ],
+        "Married": [
+          "No",
+          "Yes"
+        ],
+        "Dependents": [
+          "0",
+          "1",
+          "2",
+          "3+"
+        ],
+        "Education": [
+          "Graduate",
+          "Not Graduate"
+        ],
+        "Self_Employed": [
+          "No",
+          "Yes"
+        ],
+        "Property_Area": [
+          "Rural",
+          "Semiurban",
+          "Urban"
+        ]
+      }
+    },
+    "random_forest": {
+      "sha256": "383a748a075e42fdcaeb236fd44ec0f249388337094883864f7f6e509817fc0f",
+      "holdout_metrics": {
+        "accuracy": 0.8211382113821138,
+        "precision": 0.8461538461538461,
+        "recall": 0.9058823529411765,
+        "f1": 0.875,
+        "roc_auc": 0.7811145510835914,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            24,
+            14
+          ],
+          [
+            8,
+            77
+          ]
+        ]
+      },
+      "categories": {
+        "Gender": [
+          "Female",
+          "Male"
+        ],
+        "Married": [
+          "No",
+          "Yes"
+        ],
+        "Dependents": [
+          "0",
+          "1",
+          "2",
+          "3+"
+        ],
+        "Education": [
+          "Graduate",
+          "Not Graduate"
+        ],
+        "Self_Employed": [
+          "No",
+          "Yes"
+        ],
+        "Property_Area": [
+          "Rural",
+          "Semiurban",
+          "Urban"
+        ]
+      }
+    }
+  }
+}

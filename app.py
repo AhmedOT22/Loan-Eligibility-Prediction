@@ -1,12 +1,8 @@
-"""Streamlit demonstration of scores from the bundled loan classifiers."""
+"""Streamlit demonstration using the evaluated train-only raw-input pipelines."""
 
-import logging
-
-import joblib
 import streamlit as st
 
-from src.config import BASE_DIR
-from src.models.prediction import predict
+from src.models.serving import load_bundle, predict_score
 from src.utils.form import (
     display_model_info,
     fetch_input,
@@ -18,63 +14,41 @@ from src.utils.gauge import generate_gauge_chart
 
 
 def main():
-    """Render the applicant form and score using the existing serving artifacts."""
-    # --- Streamlit Page Config ---
+    """Score a complete form using a verified serving release, without fitting or logging inputs."""
     st.set_page_config(page_title="Loan Eligibility Prediction", layout="centered")
-
-    # --- Load Custom Styles ---
     load_custom_styles()
-
-    # --- Title ---
     st.title("🏦 Loan Eligibility Prediction App")
     st.caption(
         "Educational demonstration. Scores are uncalibrated model outputs, "
         "not lender approval probabilities or decisions."
     )
-
-    # --- Model Selection ---
     model_key = model_selector()
-    metrics_path = BASE_DIR / "models" / f"{model_key}_metrics.json"
-
-    # --- Load Model and Scaler ---
     try:
-        model = joblib.load(BASE_DIR / "models" / f"{model_key}_model.pkl")
-        scaler = joblib.load(BASE_DIR / "models/scaler.pkl")
-        feature_order = scaler.feature_names_in_.tolist()
-
-        logging.info("Bundled model and scaler loaded successfully.")
-
-    except (OSError, ValueError, TypeError, KeyError, ImportError, EOFError) as e:
-        st.error(f"Error loading model or data: {e}")
-        logging.error("Error loading model or data: %s", e)
+        model, manifest = load_bundle(model_key)
+    except (OSError, ValueError, TypeError, KeyError, ImportError, EOFError, AttributeError):
+        st.error(
+            "The verified model release is unavailable. Please try again after it is restored."
+        )
         st.stop()
 
-    # --- Display Model Info ---
-    display_model_info(metrics_path)
-
-    # --- Applicant Form ---
+    display_model_info(manifest, model_key)
     user_input = fetch_input()
-
-    # --- Prediction ---
     if user_input:
-        with st.spinner("Making prediction..."):
-            try:
-                prediction_proba, _ = predict(user_input, None, model, scaler, feature_order)
-                interpretation, color = interpret_probability(prediction_proba)
-
-                # Display only Gauge
-                st.subheader("📊 Model Score")
-                gauge = generate_gauge_chart(prediction_proba, interpretation, color)
-                st.plotly_chart(gauge, use_container_width=True)
-
-                st.caption(
-                    "This score comes from the older bundled model. The README's evaluation "
-                    "covers separate pipelines with train-only preprocessing."
-                )
-
-            except (OSError, ValueError, TypeError, KeyError, ImportError, EOFError) as e:
-                logging.error("Error during prediction: %s", e)
-                st.error(f"Error during prediction: {e}")
+        try:
+            score = predict_score(user_input, model_key, model, manifest)
+            interpretation, color = interpret_probability(score)
+            st.subheader("📊 Model Score")
+            st.plotly_chart(
+                generate_gauge_chart(score, interpretation, color), use_container_width=True
+            )
+            st.caption(
+                f"Release: {manifest['release']}. This pipeline owns its fitted preprocessing "
+                "and was trained only on the training partition used in the README evaluation."
+            )
+        except (ValueError, TypeError, KeyError):
+            st.error(
+                "Check that all form fields contain valid values before calculating a score."
+            )
 
 
 if __name__ == "__main__":

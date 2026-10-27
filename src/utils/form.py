@@ -1,8 +1,5 @@
 """Applicant form widgets and model score display helpers."""
 
-import json
-from pathlib import Path
-
 import streamlit as st
 
 from src.config import BASE_DIR
@@ -58,24 +55,21 @@ def model_selector():
     return "logistic_regression" if choice.startswith("Logistic") else "random_forest"
 
 
-def display_model_info(metrics_path):
-    """Display stored legacy accuracy, or an explicit unavailable status."""
-    try:
-        with Path(metrics_path).open(encoding="utf-8") as handle:
-            metrics = json.load(handle)
-        accuracy_display = f"{metrics['accuracy']:.2%}"
-    except (OSError, ValueError, KeyError, TypeError):
-        accuracy_display = "Unavailable"
-    with st.expander("About this bundled model"):
-        st.write(f"Historical stored accuracy: {accuracy_display}")
+def display_model_info(manifest, model_key):
+    """Show holdout metrics belonging to the exact loaded serving pipeline."""
+    metrics = manifest["models"][model_key]["holdout_metrics"]
+    with st.expander("About this model and its evaluation"):
+        st.write(f"Release: {manifest['release']}")
+        st.write(f"Holdout accuracy: {metrics['accuracy']:.2%}")
+        st.write(f"Holdout ROC AUC: {metrics['roc_auc']:.3f}")
         st.caption(
-            "This figure belongs to the older encoded model and its original evaluation. "
-            "It is not the train-only pipeline result reported in the README. The legacy "
-            "preparation used whole-dataset statistics, so this is not a clean holdout estimate."
+            f"Evaluated on {manifest['split']['holdout_rows']} reserved rows. "
+            "The held-out rows were excluded from all fitting. Cross-validation in the "
+            "README shows variation across folds; a single holdout is not a performance guarantee."
         )
     st.caption(
         "Amounts use the CSV's original numeric scale; currency and amount units are "
-        "unverified. Gender and other demographic fields reflect the legacy feature schema."
+        "unverified. Demographic fields reflect the supplied dataset, not a real lending policy."
     )
 
 

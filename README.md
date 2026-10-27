@@ -1,20 +1,51 @@
 # Loan Eligibility Prediction
 
-An educational classification project comparing Logistic Regression and Random Forest with a majority-class baseline. It includes a Streamlit demonstration and a separate raw-input training workflow with train-only preprocessing.
+An educational classification project with a Streamlit demo, complete scikit-learn pipelines, and reproducible evaluation. It compares Logistic Regression and Random Forest against a majority-class baseline on the bundled 614-row CSV.
 
-[Streamlit demo](https://loan-eligibility-prediction-djdstcprojdapfxugpdqwi.streamlit.app/) · [Training workflow](train_model.py) · [Evaluation report](reports/baseline/metrics.json)
+[Streamlit demo](https://loan-eligibility-prediction-djdstcprojdapfxugpdqwi.streamlit.app/) · [Serving release](models/serving/v1/manifest.json) · [Model notes](docs/model-notes.md) · [Evaluation report](reports/baseline/metrics.json)
 
-## What changed in the modelling workflow
+## What this project demonstrates
 
-Raw applications are split before missing-value statistics or category vocabularies are learned. Each candidate contains its own fitted preprocessing:
+- Splitting raw data before fitting imputation, scaling, or category encoding.
+- Keeping preparation and classification in one pipeline for both training and inference.
+- Comparing a fixed holdout with repeated training-only cross-validation and a simple baseline.
+- Shipping a versioned serving release with schema, checksums, package versions, and metrics for the exact loaded models.
+- Validating form inputs and exercising both classifiers through Streamlit application tests.
+
+The target is the CSV's historical `Loan_Approved` Y/N label. A model score is **not** a lender approval probability or decision. Source, currency, geography, and collection period remain unverified.
+
+## Run locally
+
+Use Python 3.11 or 3.12:
+
+```bash
+git clone https://github.com/AhmedOT22/Loan-Eligibility-Prediction.git
+cd Loan-Eligibility-Prediction
+python -m venv .venv
+# macOS/Linux:
+source .venv/bin/activate
+# Windows PowerShell instead: .venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+streamlit run app.py
+```
+
+The app loads the committed `models/serving/v1` release. No training or processed CSV is required at startup. It verifies the artifact checksum, raw feature/category schema, and scikit-learn version before loading a pipeline. Checksums detect accidental mismatch; they do not make untrusted pickle files safe. Load only trusted artifacts.
+
+The serving environment pins scikit-learn 1.4.2, Streamlit 1.50.0, and PyArrow 20.0.0 with NumPy 1.x. Exact build versions are recorded in the manifest. Hosted demo availability has not been verified; the application flows were tested locally.
+
+## Preparation and serving
+
+Raw applications are split 80/20 with stratification and seed 42. Each candidate owns its fitted preparation:
 
 1. Numeric median imputation and MinMax scaling, fitted on training rows.
-2. Categorical mode imputation and one-hot encoding, fitted on training rows; unseen categories are handled at transform time.
-3. Logistic Regression or a seeded Random Forest classifier.
+2. Categorical mode imputation and one-hot encoding, fitted on training rows.
+3. Logistic Regression or a seeded 100-tree Random Forest.
 
-`Loan_ID` and the target are excluded from model inputs. The 80/20 split is stratified by the target and uses seed 42. The fixed holdout below is supplemented by training-only cross-validation. No probability calibration is fitted.
+`Loan_ID` and the target are excluded from inputs. The app uses the same complete pipelines evaluated below, fitted on the **491 training rows only**. It does not refit on all 614 rows after evaluation. The 123-row holdout stays outside every fitting step.
 
-## Results on the bundled CSV
+The serving adapter requires exactly eleven complete raw fields and checks category membership, finite non-negative numeric values, positive loan amount/term, and binary credit history. It never fits preprocessing at inference. Candidate encoders can transform unseen categories; the app deliberately rejects unsupported categories before that step.
+
+## Holdout results for the serving pipelines
 
 | Model | Accuracy | Precision | Recall | F1 | ROC AUC |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -22,15 +53,15 @@ Raw applications are split before missing-value statistics or category vocabular
 | Random Forest | 82.11% | 0.846 | 0.906 | 0.875 | 0.781 |
 | Majority baseline | 69.11% | 0.691 | 1.000 | 0.817 | 0.500 |
 
-Positive class means `Loan_Approved = Y` in the dataset. The holdout contains 123 rows, including 85 positives. Precision/recall/F1 above refer to that positive class. See [metrics and confusion matrices](reports/baseline/metrics.json) and [run metadata](reports/baseline/run.json) for exact aggregate metrics, checksum, class proportions, and package versions. Per-applicant labels and scores are generated locally and are not published in the saved report.
+Positive class means `Loan_Approved = Y`. The holdout contains 123 rows, including 85 positives. Precision, recall, and F1 refer to that class. Logistic Regression records 17 false positives and one false negative: high positive recall does not mean strong identification of negatives.
 
-Logistic Regression performs best by accuracy and ROC AUC in this single split. Its high positive recall does not mean equally strong identification of negatives: the confusion matrix records 17 false positives and one false negative. A different split or decision threshold may change the tradeoff. Scores are not calibrated lender approval probabilities.
+[Exact aggregate metrics and confusion matrices](reports/baseline/metrics.json) · [Split metadata](reports/baseline/run.json) · [Serving artifact identities and matching metrics](models/serving/v1/manifest.json)
 
-These results evaluate newly trained raw-input pipelines, not the older artifacts currently loaded by the app. No legacy model, scaler, processed dataset, or stored legacy metrics were overwritten. The original helper functions remain for compatibility; the new training command does not use whole-dataset preprocessing.
+Tests recompute the holdout metrics from each committed serving artifact and compare them with both the manifest and report. These results now describe the models loaded by the app, rather than separate candidates. The old encoded estimators and scaler remain untouched as legacy artifacts and are not loaded by the current app.
 
-## Validation beyond a single split
+## Validation beyond one split
 
-The reserved 123-row holdout is excluded from validation. On the remaining 491 rows, three repeats of stratified five-fold cross-validation refit **all preprocessing inside each fold**. Candidates and the 0.5 threshold are fixed, without hyperparameter search. The majority classifier predicts the common label and uses the training-fold class proportions as its scores.
+On only the 491 training rows, three repeats of stratified five-fold CV refit the complete pipeline in each fold. Candidates and threshold 0.5 are fixed, without parameter search. For validation, the majority classifier predicts the common label and uses training-fold class proportions as its scores.
 
 | Model | Mean accuracy ± fold SD | Mean ROC AUC ± fold SD | Mean specificity | Mean Brier score ↓ |
 | --- | ---: | ---: | ---: | ---: |
@@ -40,77 +71,45 @@ The reserved 123-row holdout is excluded from validation. On the remaining 491 r
 
 ![Training-only cross-validation comparison](reports/validation/validation.png)
 
-The holdout's 85.37% Logistic Regression accuracy is more favorable than the cross-validation mean. Logistic Regression leads on average accuracy and Brier score, while Random Forest leads slightly on ROC AUC. Both struggle to identify negatives at threshold 0.5. Fold SD describes variation across overlapping folds; it is **not** a confidence interval or evidence of statistical superiority.
+The 85.37% holdout accuracy is more favorable than Logistic Regression's cross-validation mean. Logistic Regression leads on average accuracy and Brier score; Random Forest leads slightly on ROC AUC. Both struggle to identify negatives at threshold 0.5. Fold SD describes variation across overlapping folds, **not** a confidence interval or statistical superiority.
 
 ![Out-of-fold threshold tradeoffs](reports/validation/thresholds.png)
 
-The threshold chart pools only the first repeat's out-of-fold predictions, so each training row contributes once. It illustrates the precision/recall/specificity tradeoff; no threshold was optimized or deployed. Brier scores describe probability error, not proof of calibration. [Aggregate metrics](reports/validation/metrics.json) and [settings and package versions](reports/validation/run.json) contain no applicant indices, labels, or individual scores.
+Threshold diagnostics pool only the first repeat, so each training row contributes once. No threshold was optimized or deployed. Brier scores diagnose probability error; no calibrator was fitted. [Validation metrics](reports/validation/metrics.json) and [settings](reports/validation/run.json) contain aggregates only.
+
+## Reproduce or build a new release
 
 ```bash
+python -m pip install -r requirements-dev.txt
+python train_model.py
 python evaluate_model.py
-# To reproduce the committed aggregate report and figures:
-python evaluate_model.py --output reports/validation
+# Optional candidate pipeline exports, separate from app artifacts:
+python train_model.py --output reports/latest/candidate --save-models
+# Build a complete serving release under an ignored local report path:
+python build_serving.py
 ```
 
-See the [modelling decisions and serving boundary](docs/model-notes.md) for interpretation and remaining limitations.
+`train_model.py` writes aggregate metrics, local per-row diagnostics, and split metadata under ignored `reports/latest/`. `evaluate_model.py` exports aggregate validation statistics and real figures. Neither command changes the app's models.
 
-## Data scope
+`build_serving.py` fits and evaluates fresh pipelines, saves compressed artifacts and aggregate metadata, then reloads and checks them before publishing the new directory. Its default output is `reports/latest/serving-v1`. It refuses to overwrite an existing directory and exports no per-applicant labels, scores, or split indices. To prepare a different release, pass an unused `--output` directory. Review its metrics and application compatibility before changing `SERVING_DIR`; see [release and rollback instructions](docs/model-notes.md).
 
-The supplied `data/raw/credit.csv` has 614 rows. Features are:
+## Data scope and limitations
+
+`data/raw/credit.csv` has 614 rows:
 
 - Categorical: `Gender`, `Married`, `Dependents`, `Education`, `Self_Employed`, `Property_Area`.
 - Numeric: `ApplicantIncome`, `CoapplicantIncome`, `LoanAmount`, `Loan_Amount_Term`, `Credit_History`.
-- Target: `Loan_Approved`, encoded from `Y/N`.
+- Target: `Loan_Approved`, encoded from Y/N.
 
-The CSV does not establish its original publisher, source URL, collection period, geography, currency, or representativeness. The earlier UCI attribution has been removed because no supporting source was supplied. Do not treat this dataset as evidence of an actual lender's current policy. Demographic inputs and historical labels also require evaluation before any real decision use; this repository is a modelling demonstration.
+No source URL or original publisher has been verified, so no UCI attribution is claimed. Amounts retain the supplied numeric scale. The dataset does not establish representativeness, independent applicants, or an actual lender's policy. Demographic inputs and historical labels require review before any real use. Random splits and CV do not establish future performance, fairness, calibration, or legal suitability.
 
-## Run locally
-
-Use Python 3.11 or 3.12 from the repository root:
-
-```bash
-git clone https://github.com/AhmedOT22/Loan-Eligibility-Prediction.git
-cd Loan-Eligibility-Prediction
-python -m venv .venv
-# macOS/Linux:
-source .venv/bin/activate
-# Windows PowerShell instead: .venv\Scripts\Activate.ps1
-python -m pip install -r requirements-dev.txt
-streamlit run app.py
-```
-
-The serving environment pins scikit-learn 1.4.2 to match the bundled artifacts, Streamlit 1.50.0 for tested application flows, and PyArrow 20.0.0 for compatibility with NumPy 1.x. Only load pickle/joblib artifacts from trusted sources. Live demo availability was not verified in this code update.
-
-## Train without replacing app artifacts
-
-```bash
-python train_model.py
-# Optional: save complete raw-input candidate pipelines under the report directory
-python train_model.py --output reports/candidate --save-models
-```
-
-Default output is `reports/latest/`: metrics and confusion matrices, per-row class/score predictions, and run metadata. `--save-models` writes separate `*_pipeline.joblib` files beneath the selected report directory. These pipelines accept raw feature DataFrames and own their preprocessing; they are not drop-in replacements for the app's separate encoded-model/scaler files.
-
-Training errors propagate instead of being swallowed with a success log. Importing the script does not train or write artifacts.
-
-## Existing app preparation
-
-The app's adapter directly encodes a complete applicant, checks category and feature-order compatibility, and uses the fitted legacy scaler without fitting anything at inference. It no longer concatenates a raw applicant with the processed training table. Missing fields and unsupported categories fail explicitly. The gauge and score-band labels describe an uncalibrated model score. Historical stored accuracy is explained inside an expander, including the original whole-dataset preparation limitation; it is not presented as the new pipeline result. The demo does not provide approval-improvement advice. Model, scaler, and CSS paths are anchored to the repository; the feature order comes from the fitted scaler, so startup does not depend on the processed CSV.
-
-## Tests
+## Tests and checks
 
 ```bash
 python -m pytest -q
-```
-
-Tests cover train-only imputation statistics, unseen-category transformation without refitting, disjoint splits, invalid target rejection, legacy applicant encoding, and independence from the supplied reference table. Both bundled classifiers were also smoke-tested with the repaired adapter under scikit-learn 1.4.2. Streamlit application tests also submit forms through both bundled classifiers from a different working directory. Legacy helper failures propagate instead of returning success-shaped defaults. CI runs the tests and full Pylint checks with installed project dependencies.
-
-Further work includes justified threshold selection, calibration assessment, subgroup evaluation, and an explicit migration of serving artifacts if new pipelines are adopted. Cross-validation does not resolve unknown provenance, duplicate/group dependence, or real-world suitability.
-
-[MIT License](LICENSE) · [Ahmed Ouazzani](https://github.com/AhmedOT22)
-
-To run the same lint check locally:
-
-```bash
 python -m pylint $(git ls-files '*.py')
 ```
+
+Tests cover training boundaries, legacy compatibility, aggregate evaluation, exact serving/report metric agreement, checksum/version failure, invalid inputs, and both real Streamlit form flows. Application tests compare the rendered gauge score with a direct prediction from the selected release and run from another working directory. CI installs project dependencies and runs tests and full Pylint checks.
+
+[MIT License](LICENSE) · [Ahmed Ouazzani](https://github.com/AhmedOT22)

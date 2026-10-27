@@ -24,7 +24,9 @@ ROOT = Path(__file__).resolve().parent
 
 
 def train_pipeline(
-    input_path=ROOT / "data/raw/credit.csv", output_dir=ROOT / "reports/latest", save_models=False
+    input_path=ROOT / "data/raw/credit.csv",
+    output_dir=ROOT / "reports/latest",
+    save_models=False,
 ):
     """Evaluate candidates on a fixed holdout and save local reports."""
     input_path, output = Path(input_path), Path(output_dir)
@@ -42,15 +44,7 @@ def train_pipeline(
     for name, model in candidates.items():
         labels = model.predict(x_test)
         scores = model.predict_proba(x_test)[:, list(model.classes_).index(1)]
-        metrics[name] = {
-            "accuracy": float(accuracy_score(y_test, labels)),
-            "precision": float(precision_score(y_test, labels, zero_division=0)),
-            "recall": float(recall_score(y_test, labels, zero_division=0)),
-            "f1": float(f1_score(y_test, labels, zero_division=0)),
-            "roc_auc": float(roc_auc_score(y_test, scores)),
-            "confusion_matrix_labels": [0, 1],
-            "confusion_matrix": confusion_matrix(y_test, labels, labels=[0, 1]).tolist(),
-        }
+        metrics[name] = score_classifier(model, x_test, y_test)
         predictions[name + "_score"] = scores
         predictions[name + "_class"] = labels
         if save_models:
@@ -59,6 +53,21 @@ def train_pipeline(
     predictions.to_csv(output / "predictions.csv", index=False)
     write_run_metadata(input_path, output, (x_train, x_test, y_train, y_test))
     return metrics
+
+
+def score_classifier(model, features, target):
+    """Compute shared aggregate holdout metrics for candidates and serving releases."""
+    labels = model.predict(features)
+    scores = model.predict_proba(features)[:, list(model.classes_).index(1)]
+    return {
+        "accuracy": float(accuracy_score(target, labels)),
+        "precision": float(precision_score(target, labels, zero_division=0)),
+        "recall": float(recall_score(target, labels, zero_division=0)),
+        "f1": float(f1_score(target, labels, zero_division=0)),
+        "roc_auc": float(roc_auc_score(target, scores)),
+        "confusion_matrix_labels": [0, 1],
+        "confusion_matrix": confusion_matrix(target, labels, labels=[0, 1]).tolist(),
+    }
 
 
 def write_run_metadata(input_path, output, split):
@@ -76,7 +85,8 @@ def write_run_metadata(input_path, output, split):
         "random_state": 42,
         "test_size": 0.2,
         "evaluation": (
-            "single stratified holdout; " "no cross-validation or probability calibration claimed"
+            "single stratified holdout; "
+            "no cross-validation or probability calibration claimed"
         ),
         "packages": {p: version(p) for p in ("numpy", "pandas", "scikit-learn", "joblib")},
     }
